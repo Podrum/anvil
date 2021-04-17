@@ -41,7 +41,7 @@ class region:
                 new_chunk: object = chunk() # Create the chunk object
                 new_chunk.read_data(chunk_data) # Decode the fetched chunk data
                 self.chunks.append(new_chunk) # Append chunk to the chunk storage
-            else:
+            else: # If chunk does not exist just append a empty chunk to the chunks storage
                 self.chunks.append(empty_chunk())
 
     def save_chunks(self, compression_type: int = 2) -> None:
