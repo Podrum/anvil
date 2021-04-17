@@ -16,6 +16,7 @@ class region:
         x, z = file_name.split(".")[1:1 + 2] # Get the Region x and y
         self.x: int = int(x) # Save the region x globaly
         self.z: int = int(z) # save the region z globaly
+        self.chunks: list = [empty_chunk()] * 1024 # Initialize empty chunks
 
     def load_chunks(self) -> None:
         file: object = open(self.__path, "rb") # Open the region file
