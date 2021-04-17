@@ -42,14 +42,14 @@ class region:
                 self.chunks.append(new_chunk) # Append chunk to the chunk storage
 
     def save_chunks(self, compression_type: int = 2) -> None:
-        if not 1 <= compression_type <= 2:
+        if not 1 <= compression_type <= 2: # Check compression type is 1 => GZip 2 => Zlib Deflate or else error
             raise Exception(f"ERROR: invalid compression type {compression_type}")
-        file: object = open(self.path, "wb")
-        index_stream: object = binary_stream()
-        timestamp_stream: object = binary_stream()
-        chunks_stream: object = binary_stream()
-        pos: int = 2
-        for i in range(0, 1024):
+        file: object = open(self.path, "wb") # Open region file for writing
+        index_stream: object = binary_stream() # Create the chunk locations stream
+        timestamp_stream: object = binary_stream() # Create the chunk timestamps stream
+        chunks_stream: object = binary_stream() # Create the chunks stream
+        pos: int = 2 # Just to calculate the position of each chunk
+        for i in range(0, 1024): # Just write all chunks
             if i < len(self.chunks):
                 chunk_stream: object = binary_stream()
                 chunk_data: bytes = self.chunks[i].write_data()
