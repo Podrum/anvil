@@ -4,6 +4,7 @@ import os
 import zlib
 import gzip
 from chunk import chunk
+from empty_chunk import empty_chunk
 import time
 
 class region:
@@ -40,6 +41,8 @@ class region:
                 new_chunk: object = chunk() # Create the chunk object
                 new_chunk.read_data(chunk_data) # Decode the fetched chunk data
                 self.chunks.append(new_chunk) # Append chunk to the chunk storage
+            else:
+                self.chunks.append(empty_chunk())
 
     def save_chunks(self, compression_type: int = 2) -> None:
         if not 1 <= compression_type <= 2: # Check compression type is 1 => GZip 2 => Zlib Deflate or else error
@@ -50,7 +53,7 @@ class region:
         chunks_stream: object = binary_stream() # Create the chunks stream
         pos: int = 2 # Just to calculate the position of each chunk
         for i in range(0, 1024): # Just write all chunks
-            if i < len(self.chunks):
+            if not isinstance(self.chunks[i], empty_chunk):
                 chunk_stream: object = binary_stream()
                 chunk_data: bytes = self.chunks[i].write_data()
                 if compression_type == 1:
