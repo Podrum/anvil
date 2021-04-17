@@ -8,38 +8,38 @@ import time
 
 class region:
     def __init__(self, path: str) -> None:
-        self.path: str = path
+        self.path: str = path # Save the region file path to a variable
 
     def load_chunks(self) -> None:
-        file: object = open(self.path, "rb")
-        file_name: str = os.path.basename(self.path)
-        if file_name[-3:] != "mca" and file_name[-3:] != "mcr" and file_name[-5:] != "mcapm":
+        file: object = open(self.path, "rb") # Open the region file
+        file_name: str = os.path.basename(self.path) # Get the file name without the rest of the path
+        if file_name[-3:] != "mca" and file_name[-3:] != "mcr" and file_name[-5:] != "mcapm": # Check if is anvil, mcregion, pmanvil or else error
             raise Exception(f"Invalid file type.")
-        x, z = file_name.split(".")[1:1 + 2]
-        self.x: int = int(x)
-        self.z: int = int(z)
-        data: bytes = file.read()
-        self.chunks: list = []
-        index_stream: object = binary_stream(data[0:4096])
-        timestamp_stream: object = binary_stream(data[4096:4096 + 4096])
-        for i in range(0, 1024):
-            pos: int = index_stream.read_unsigned_triad_be()
-            size: int = index_stream.read_unsigned_byte()
-            timestamp: int = timestamp_stream.read_unsigned_int_be()
-            if pos != 0 and size != 0:
-                chunk_stream: object = binary_stream(data[(pos * 4096):(pos * 4096) + (size * 4096)])
-                size_on_disk: int = chunk_stream.read_unsigned_int_be()
-                compression_type: int = chunk_stream.read_unsigned_byte()
-                compressed_chunk_data: bytes = chunk_stream.read(size_on_disk)
-                if compression_type == 1:
-                    chunk_data: bytes = gzip.decompress(compressed_chunk_data)
-                elif compression_type == 2:
-                    chunk_data: bytes = zlib.decompress(compressed_chunk_data)
+        x, z = file_name.split(".")[1:1 + 2] # Get the Region x and y
+        self.x: int = int(x) # Save the region x globaly
+        self.z: int = int(z) # save the region z globaly
+        data: bytes = file.read() # Save the data located in the file to a variable
+        self.chunks: list = [] # Chunks Storage
+        index_stream: object = binary_stream(data[0:4096]) # The encoded chunk locations table
+        timestamp_stream: object = binary_stream(data[4096:4096 + 4096]) # The encoded chunk timestamps table
+        for i in range(0, 1024): # Just read all chunks
+            pos: int = index_stream.read_unsigned_triad_be() # decoded chunk location (in sectors) from the locations table
+            size: int = index_stream.read_unsigned_byte() # decoded chunk size (in sectors) from the locations table
+            timestamp: int = timestamp_stream.read_unsigned_int_be() # decoded chunk timestamp from the locations table
+            if pos != 0 and size != 0: # Check if the chunk exist in the region file
+                chunk_stream: object = binary_stream(data[(pos * 4096):(pos * 4096) + (size * 4096)]) # Encoded chunk
+                size_on_disk: int = chunk_stream.read_unsigned_int_be() # Size (in bytes) of the compressed chunk
+                compression_type: int = chunk_stream.read_unsigned_byte() # Compression type 1 => GZip 2 => Zlib Deflate
+                compressed_chunk_data: bytes = chunk_stream.read(size_on_disk) # Compressed chunk
+                if compression_type == 1: # Check if is GZip
+                    chunk_data: bytes = gzip.decompress(compressed_chunk_data) # decompressed chunk data
+                elif compression_type == 2: # Check if is Zlib Deflate
+                    chunk_data: bytes = zlib.decompress(compressed_chunk_data) # decompressed chunk data
                 else:
-                    raise Exception(f"ERROR: invalid compression type {compression_type}")
-                new_chunk: object = chunk()
-                new_chunk.read_data(chunk_data)
-                self.chunks.append(new_chunk)
+                    raise Exception(f"ERROR: invalid compression type {compression_type}") # If the compression types is invalid error
+                new_chunk: object = chunk() # Create the chunk object
+                new_chunk.read_data(chunk_data) # Decode the fetched chunk data
+                self.chunks.append(new_chunk) # Append chunk to the chunk storage
 
     def save_chunks(self, compression_type: int = 2) -> None:
         if not 1 <= compression_type <= 2:
