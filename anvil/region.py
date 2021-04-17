@@ -9,8 +9,8 @@ import time
 
 class region:
     def __init__(self, path: str) -> None:
-        self.path: str = path # Save the region file path to a variable
-        file_name: str = os.path.basename(self.path) # Get the file name without the rest of the path
+        self.__path: str = path # Save the region file path to a variable
+        file_name: str = os.path.basename(path) # Get the file name without the rest of the path
         if file_name[-3:] != "mca" and file_name[-3:] != "mcr" and file_name[-5:] != "mcapm": # Check if is anvil, mcregion, pmanvil or else error
             raise Exception(f"Invalid file type.")
         x, z = file_name.split(".")[1:1 + 2] # Get the Region x and y
@@ -18,7 +18,7 @@ class region:
         self.z: int = int(z) # save the region z globaly
 
     def load_chunks(self) -> None:
-        file: object = open(self.path, "rb") # Open the region file
+        file: object = open(self.__path, "rb") # Open the region file
         data: bytes = file.read() # Save the data located in the file to a variable
         self.chunks: list = [] # Chunks Storage
         index_stream: object = binary_stream(data[0:4096]) # The encoded chunk locations table
@@ -47,7 +47,7 @@ class region:
     def save_chunks(self, compression_type: int = 2) -> None:
         if not 1 <= compression_type <= 2: # Check compression type is 1 => GZip 2 => Zlib Deflate or else error
             raise Exception(f"ERROR: invalid compression type {compression_type}")
-        file: object = open(self.path, "wb") # Open region file for writing
+        file: object = open(self.__path, "wb") # Open region file for writing
         index_stream: object = binary_stream() # Create the chunk locations stream
         timestamp_stream: object = binary_stream() # Create the chunk timestamps stream
         chunks_stream: object = binary_stream() # Create the chunks stream
