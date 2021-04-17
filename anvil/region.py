@@ -53,33 +53,33 @@ class region:
         chunks_stream: object = binary_stream() # Create the chunks stream
         pos: int = 2 # Just to calculate the position of each chunk
         for i in range(0, 1024): # Just write all chunks
-            if not isinstance(self.chunks[i], empty_chunk):
-                chunk_stream: object = binary_stream()
-                chunk_data: bytes = self.chunks[i].write_data()
-                if compression_type == 1:
-                    compressed_chunk_data: bytes = gzip.compress(chunk_data)
-                elif compression_type == 2:
-                    compressed_chunk_data: bytes = zlib.compress(chunk_data)
-                chunk_stream.write_int_be(len(compressed_chunk_data))
-                chunk_stream.write_unsigned_byte(compression_type)
-                chunk_stream.write(compressed_chunk_data)
-                ii: int = 0
+            if not isinstance(self.chunks[i], empty_chunk): # Check if not is empty chunk
+                chunk_stream: object = binary_stream() # Create chunk stream
+                chunk_data: bytes = self.chunks[i].write_data() # encode chunk
+                if compression_type == 1: # Check if is GZip
+                    compressed_chunk_data: bytes = gzip.compress(chunk_data) # compressed chunk data
+                elif compression_type == 2: # Check if is Zlib Deflate
+                    compressed_chunk_data: bytes = zlib.compress(chunk_data) # compressed chunk data
+                chunk_stream.write_int_be(len(compressed_chunk_data)) # Write the size on disk (in bytes) of the compressed chunk data to the stream
+                chunk_stream.write_unsigned_byte(compression_type) # Write the compression type to the stream
+                chunk_stream.write(compressed_chunk_data) # write the compressed chunk data to the stream
+                ii: int = 0 # pending chunk size (in bytes)
                 while True:
-                    remaining: int = ii - len(chunk_stream.data)
-                    if remaining > 0:
-                        size: int = ii
+                    remaining: int = ii - len(chunk_stream.data) # Trailing 0 count
+                    if remaining > 0: # check if got the correct size
+                        size: int = ii # save the size
                         break
-                    ii += 4096
+                    ii += 4096 # Just add up until get the correct value
                 chunk_stream.write(b"\x00" * remaining)
-                chunks_stream.write(chunk_stream.data)
-                sector_count: int = int(size / 4096)
-                index_stream.write_unsigned_triad_be(pos)
-                index_stream.write_unsigned_byte(sector_count)
-                pos += sector_count
-                timestamp_stream.write_unsigned_int_be(int(time.time()))
-            else:
-                index_stream.write_unsigned_triad_be(0)
-                index_stream.write_unsigned_byte(0)
-                timestamp_stream.write_unsigned_int_be(0)
-        data: bytes = index_stream.data + timestamp_stream.data + chunks_stream.data
-        file.write(data)
+                chunks_stream.write(chunk_stream.data) # Write the chunk to the chunks stream
+                sector_count: int = int(size / 4096) # chunk size (in sectors)
+                index_stream.write_unsigned_triad_be(pos) # Write the calculated position to the sectors stream
+                index_stream.write_unsigned_byte(sector_count) # Write th chunk size (in sectors) to the sectors stream
+                pos += sector_count # Add the chunk size (in sectors) to the position
+                timestamp_stream.write_unsigned_int_be(int(time.time())) # Write the current timestamp to the timestamps stream
+            else: # If is empty chunk
+                index_stream.write_unsigned_triad_be(0) # Write empty position to the sectors stream
+                index_stream.write_unsigned_byte(0) # Write empty size to the sectors stream
+                timestamp_stream.write_unsigned_int_be(0) # Write empty timestamp to the timestamps stream
+        data: bytes = index_stream.data + timestamp_stream.data + chunks_stream.data # Connect the data blobs togeather
+        file.write(data) # Save changes to region file
