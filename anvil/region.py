@@ -10,15 +10,15 @@ import time
 class region:
     def __init__(self, path: str) -> None:
         self.path: str = path # Save the region file path to a variable
-
-    def load_chunks(self) -> None:
-        file: object = open(self.path, "rb") # Open the region file
         file_name: str = os.path.basename(self.path) # Get the file name without the rest of the path
         if file_name[-3:] != "mca" and file_name[-3:] != "mcr" and file_name[-5:] != "mcapm": # Check if is anvil, mcregion, pmanvil or else error
             raise Exception(f"Invalid file type.")
         x, z = file_name.split(".")[1:1 + 2] # Get the Region x and y
         self.x: int = int(x) # Save the region x globaly
         self.z: int = int(z) # save the region z globaly
+
+    def load_chunks(self) -> None:
+        file: object = open(self.path, "rb") # Open the region file
         data: bytes = file.read() # Save the data located in the file to a variable
         self.chunks: list = [] # Chunks Storage
         index_stream: object = binary_stream(data[0:4096]) # The encoded chunk locations table
