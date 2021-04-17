@@ -11,7 +11,7 @@ class region:
     def __init__(self, path: str) -> None:
         self.__path: str = path # Save the region file path to a variable
         file_name: str = os.path.basename(path) # Get the file name without the rest of the path
-        if file_name[-3:] != "mca" and file_name[-3:] != "mcr" and file_name[-5:] != "mcapm": # Check if is anvil, mcregion, pmanvil or else error
+        if file_name[-3:] != "mca": # Check if is anvil or else error
             raise Exception(f"Invalid file type.")
         x, z = file_name.split(".")[1:1 + 2] # Get the Region x and y
         self.x: int = int(x) # Save the region x globaly
