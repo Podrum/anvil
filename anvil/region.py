@@ -1,3 +1,5 @@
+# Copyright Podrum Studios
+
 from binary_utils.binary_stream import binary_stream
 import struct
 import os
