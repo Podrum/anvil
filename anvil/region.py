@@ -3,8 +3,8 @@ import struct
 import os
 import zlib
 import gzip
-from chunk import chunk
-from empty_chunk import empty_chunk
+from anvil.chunk import chunk
+from anvil.empty_chunk import empty_chunk
 import time
 
 class region:
