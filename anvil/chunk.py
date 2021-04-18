@@ -1,3 +1,5 @@
+# Copyright Podrum Studios
+
 from nbt_utils.tag.compound_tag import compound_tag
 from nbt_utils.utils.nbt_be_binary_stream import nbt_be_binary_stream
 
